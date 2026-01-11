@@ -35,7 +35,7 @@
         "grpc": "{{ consul_addresses.grpc }}",
         {% endif %}
         {% if consul_version is version_compare('1.14.0', '>=') %}
-        "grpc_tls": "{{ consul_addresses.grpc_tls }}",
+        "grpc_tls": "{{ consul_addresses.grpc_tls }}"
         {% endif %}
     },
     {## Ports Used ##}
@@ -62,7 +62,7 @@
 
     {## DNS ##}
     {% if consul_recursors | length > 0 %}
-        "recursors": {{ consul_recursors | to_json }},
+        "recursors": {{ consul_recursors }},
     {% endif %}
 
     {## Agent ##}

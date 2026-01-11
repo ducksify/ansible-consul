@@ -6,7 +6,7 @@
     name: "{{ consul_repo_prerequisites }}"
     state: present
   become: true
-  when: (consul_os_repo_prerequisites)
+  when: consul_os_repo_prerequisites is defined and (consul_os_repo_prerequisites|length>0)
   tags: installation
 
 - name: Gather the package facts
@@ -60,19 +60,43 @@
         ansible_distribution|lower == 'rocky' or
         ansible_distribution|lower == 'almalinux'
 
+    - name: ensure hashicorp repository debian >= 12
+      block:
+        - name: ensure hashicorp repository
+          ansible.builtin.deb822_repository:
+            name: hashicorp
+            types: deb
+            uris: '{{ consul_repo_url }}'
+            suites: '{{ ansible_distribution_release }}'
+            components: main
+            architectures: amd64
+            signed_by: '{{ consul_repo_url }}/gpg'
+      when:
+        - ansible_os_family|lower == 'debian'
+        - ansible_distribution_major_version | int >= 12
 
-    - name: Add an Apt signing key, uses whichever key is at the URL
-      ansible.builtin.apt_key:
-        url: "{{ consul_repo_url }}/gpg"
-        state: present
-      when: ansible_os_family|lower == 'debian'
+    - name: ensure hashicorp repository debian < 12
+      block:
+        - name: ensure apt dependencies
+          apt:
+            name: ['apt-transport-https', 'ca-certificates', 'software-properties-common', 'gnupg2']
+            state: "present"
+            install_recommends: false
+        - name: Add an Apt signing key, uses whichever key is at the URL
+          ansible.builtin.apt_key:
+            url: "{{ consul_repo_url }}/gpg"
+            state: present
+          when: ansible_os_family|lower == 'debian'
 
-    - name: Add Debian/Ubuntu Linux repository
-      ansible.builtin.apt_repository:
-        repo: deb {{ consul_repo_url }} {{ ansible_distribution_release }} main
-        state: present
-        update_cache: true
-      when: ansible_os_family|lower == 'debian'
+        - name: Add Debian/Ubuntu Linux repository
+          ansible.builtin.apt_repository:
+            repo: deb {{ consul_repo_url }} {{ ansible_distribution_release }} main
+            state: present
+            update_cache: true
+      when:
+        - ansible_os_family|lower == 'debian'
+        - ansible_distribution_major_version | int < 12
+
 
 - name: Install consul package
   ansible.builtin.package:
