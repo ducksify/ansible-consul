@@ -1,32 +1,6 @@
 ---
 # File: config.yml - Consul configuration tasks
 
-#- name: Create configuration JAN
-#  ansible.builtin.template:
-#    src: "{{ consul_config_template_path }}"
-#    dest: "{{ config_item.dest }}"
-#    owner: "{{ consul_user }}"
-#    group: "{{ consul_group }}"
-#    mode: "0600"
-#  with_items:
-#    - dest: "{{ consul_config_path }}/config.json"
-#      config_version: "{{ consul_node_role }}"
-#      when: true
-##    - dest: "{{ consul_config_path }}/bootstrap.json"
-##      config_version: bootstrap
-##      when: "{{ consul_debug | bool }}"
-##    - dest: "{{ consul_config_path }}/server.json"
-##      config_version: server
-##      when: "{{ consul_debug | bool }}"
-##    - dest: "{{ consul_config_path }}/client.json"
-##      config_version: client
-##      when: "{{ consul_debug | bool }}"
-#  loop_control:
-#    loop_var: config_item
-#  when: config_item.when
-#  notify:
-#    - restart consul
-
 - name: Create configuration
   ansible.builtin.copy:
     dest: "{{ config_item.dest }}"
